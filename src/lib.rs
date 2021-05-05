@@ -1,5 +1,5 @@
 //! Implements bisection operations on sorted slices.
-#[warn(missing_docs)]
+#![warn(rust_2018_idioms, nonstandard_style, missing_docs)]
 use std::cmp::Ordering::{self, Equal, Greater, Less};
 // Todo: further expand on crate-level doc.
 
@@ -17,7 +17,7 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// Todo: Add more examples.
 ///
 /// ```
-/// use bisectrs::bisect_right;
+/// use bisect_rs::bisect_right;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// let idx = bisect_right(&u, &2);
 ///
@@ -51,7 +51,7 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisectrs::bisect_right_by_key;
+/// use bisect_rs::bisect_right_by_key;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// ```
 ///
@@ -87,7 +87,7 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisectrs::bisect_right_by;
+/// use bisect_rs::bisect_right_by;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// ```
 ///
@@ -134,7 +134,7 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisectrs::bisect_left;
+/// use bisect_rs::bisect_left;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// let idx = bisect_left(&u, &2);
 ///
@@ -164,7 +164,7 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisectrs::bisect_left_by_key;
+/// use bisect_rs::bisect_left_by_key;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// ```
 pub fn bisect_left_by_key<T, B, F>(a: &[T], b: &B, mut f: F) -> usize
@@ -195,7 +195,7 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisectrs::bisect_left_by;
+/// use bisect_rs::bisect_left_by;
 /// let u = [0, 1, 2, 2, 3, 4];
 /// ```
 pub fn bisect_left_by<T, F>(a: &[T], mut f: F) -> usize
@@ -221,4 +221,35 @@ where
         }
     }
     low
+}
+
+// I'm still unsure if this is really needed. Searching Github for usages of
+// bisecting with bounds specified in Python, I currently only found hits for code
+// implementing a Trie (and my quick glance of it gives me the impression it might be
+// for optimization purposes).
+//
+// If needed, all bounded forms follow the pattern as seen in `bisect_slice_right`. 
+// We grab the start of the bound, and return start + bisect_*(slice[bound], x). 
+#[allow(dead_code)]
+fn bisect_slice_right<T, B>(a: &[T], x: &T, bound: B) -> usize 
+where 
+    T: Ord,
+    B: std::ops::RangeBounds<usize> + std::slice::SliceIndex<[T], Output = [T]>
+{
+    let start = bounds_start(&bound);
+    // Note: Invalid bound panics here.
+    start + bisect_right_by(&a[bound], |k| k.cmp(x))
+}
+
+#[allow(dead_code)]
+#[inline]
+fn bounds_start<B>(bounds: &B) -> usize
+where 
+    B: std::ops::RangeBounds<usize> 
+{
+    match bounds.start_bound() {
+        std::ops::Bound::Unbounded => 0,
+        std::ops::Bound::Excluded(&x) => x-1,
+        std::ops::Bound::Included(&x) => x,
+    }
 }

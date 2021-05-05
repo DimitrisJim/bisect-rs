@@ -1,4 +1,4 @@
-use bisectrs::{bisect_left, bisect_right};
+use bisect_rs::{bisect_left, bisect_right};
 
 // Todo: Document others? Any point in it?
 #[test]
