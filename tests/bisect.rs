@@ -1,6 +1,6 @@
-use bisect_rs::{bisect_left, bisect_right};
+// Test _by variations? Implicitly called via bisect_left/right.
+use bisect_rs::{bisect_left, bisect_left_by_key, bisect_right, bisect_right_by_key};
 
-// Todo: Document others? Any point in it?
 #[test]
 fn test_bisect_left() {
     let sl: [i32; 0] = [];
@@ -99,4 +99,37 @@ fn test_bisect_right_overflow() {
     // be expected here.
     let b = [(); usize::MAX];
     assert_eq!(bisect_right(&b, &()), usize::MAX);
+}
+
+#[test]
+fn test_bisect_left_by_key() {
+    let s = [(0, 0), (2, 1), (4, 1), (5, 1), (3, 1),
+            (1, 2), (2, 3), (4, 5), (5, 8), (3, 13),
+            (1, 21), (2, 34), (4, 55)];
+    assert_eq!(bisect_left_by_key(&s, &13, |&(_, b)| b), 9);
+    assert_eq!(bisect_left_by_key(&s, &4, |&(_, b)| b), 7);
+    assert_eq!(bisect_left_by_key(&s, &1, |&(_, b)| b), 1);
+    assert_eq!(bisect_left_by_key(&s, &-1, |&(_, b)| b), 0);
+
+    let s = ["a", "aa", "bb", "cc", "ddddd", "aaaaaaa"];
+    assert_eq!(bisect_left_by_key(&s, &"".len(), |e| e.len()), 0);
+    assert_eq!(bisect_left_by_key(&s, &"gg".len(), |e| e.len()), 1);
+    assert_eq!(bisect_left_by_key(&s, &"ccc".len(), |e| e.len()), 4);
+}
+
+#[test]
+fn test_bisect_right_by_key() {
+    let s = [(0, 0), (2, 1), (4, 1), (5, 1), (3, 1),
+            (1, 2), (2, 3), (4, 5), (5, 8), (3, 13),
+            (1, 21), (2, 34), (4, 55)];
+
+    assert_eq!(bisect_right_by_key(&s, &13, |&(_, b)| b), 10);
+    assert_eq!(bisect_right_by_key(&s, &4, |&(_, b)| b), 7);
+    assert_eq!(bisect_right_by_key(&s, &1, |&(_, b)| b), 5);
+    assert_eq!(bisect_right_by_key(&s, &55, |&(_, b)| b), 13);
+    
+    let s = ["a", "aa", "bb", "cc", "ddddd", "aaaaaaa"];
+    assert_eq!(bisect_right_by_key(&s, &"kdjdjfkdjd".len(), |e| e.len()), 6);
+    assert_eq!(bisect_right_by_key(&s, &"gg".len(), |e| e.len()), 4);
+    assert_eq!(bisect_right_by_key(&s, &"ccc".len(), |e| e.len()), 4);
 }

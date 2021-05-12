@@ -1,7 +1,14 @@
-//! Implements bisection operations on sorted slices.
+//! Implements bisection operations on sorted slices. 
+//!
+//! Bisection, as the word bisect hints to, is the division of a quantity in two
+//! parts. Though similar in spirit and interface to `slice::binary_search`, the bisection
+//! operations defined here allow finer control of the position returned.
+//!
+//! Inspired by Python's [bisect](https://docs.python.org/3/library/bisect.html), two operations
+//! are defined, bisecting left and bisecting right. The names indicate the location of the index returned
+//! relative to the element found. 
 #![warn(rust_2018_idioms, nonstandard_style, missing_docs)]
 use std::cmp::Ordering::{self, Equal, Greater, Less};
-// Todo: further expand on crate-level doc.
 
 /// Search for the element and return the rightmost index that can be used to insert
 /// it into the sorted slice while maintaining sort order.
@@ -19,9 +26,9 @@ use std::cmp::Ordering::{self, Equal, Greater, Less};
 /// ```
 /// use bisect_rs::bisect_right;
 /// let u = [0, 1, 2, 2, 3, 4];
-/// let idx = bisect_right(&u, &2);
 ///
-/// assert_eq!(idx, 4);
+/// assert_eq!(bisect_right(&u, &4), 6);
+/// assert_eq!(bisect_right(&u, &2), 4);
 /// ```
 /// # Panics
 ///
@@ -52,7 +59,13 @@ where
 ///
 /// ```
 /// use bisect_rs::bisect_right_by_key;
-/// let u = [0, 1, 2, 2, 3, 4];
+///
+/// let u = vec![(1, 3), (5, 5), (5, 6), (10, 2), (11, 2)];
+///
+/// let target = (5, 1);
+/// assert_eq!(bisect_right_by_key(&u, &target.0, |&(a, _)| a), 3);
+/// let target = (1, 1);
+/// assert_eq!(bisect_right_by_key(&u, &target.0, |&(a, _)| a), 1);
 /// ```
 ///
 /// # Panics
@@ -88,7 +101,15 @@ where
 ///
 /// ```
 /// use bisect_rs::bisect_right_by;
-/// let u = [0, 1, 2, 2, 3, 4];
+///
+/// let s = [0, 1, 1, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+///
+/// let seek = 13;
+/// assert_eq!(bisect_right_by(&s, |probe| probe.cmp(&seek)), 10);
+/// let seek = 1;
+/// assert_eq!(bisect_right_by(&s, |probe| probe.cmp(&seek)), 5);
+/// let seek = 100;
+/// assert_eq!(bisect_right_by(&s, |probe| probe.cmp(&seek)), 13); 
 /// ```
 ///
 /// # Panics
@@ -136,9 +157,9 @@ where
 /// ```
 /// use bisect_rs::bisect_left;
 /// let u = [0, 1, 2, 2, 3, 4];
-/// let idx = bisect_left(&u, &2);
-///
-/// assert_eq!(idx, 2);
+/// 
+/// assert_eq!(bisect_left(&u, &3), 4);
+/// assert_eq!(bisect_left(&u, &2), 2);
 /// ```
 pub fn bisect_left<T>(a: &[T], x: &T) -> usize
 where
@@ -164,8 +185,14 @@ where
 /// Basic usage:
 ///
 /// ```
-/// use bisect_rs::bisect_left_by_key;
-/// let u = [0, 1, 2, 2, 3, 4];
+/// use bisect_rs::bisect_right_by_key;
+///
+/// let u = vec![(1, 3), (5, 5), (5, 6), (10, 2), (11, 2)];
+///
+/// let target = (5, 1);
+/// assert_eq!(bisect_right_by_key(&u, &target.0, |&(a, _)| a), 3);
+/// let target = (11, 1);
+/// assert_eq!(bisect_right_by_key(&u, &target.0, |&(a, _)| a), 5);
 /// ```
 pub fn bisect_left_by_key<T, B, F>(a: &[T], b: &B, mut f: F) -> usize
 where
@@ -196,7 +223,15 @@ where
 ///
 /// ```
 /// use bisect_rs::bisect_left_by;
-/// let u = [0, 1, 2, 2, 3, 4];
+///
+/// let s = [0, 1, 1, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55];
+///
+/// let seek = 13;
+/// assert_eq!(bisect_left_by(&s, |probe| probe.cmp(&seek)), 9);
+/// let seek = 1;
+/// assert_eq!(bisect_left_by(&s, |probe| probe.cmp(&seek)), 1);
+/// let seek = 100;
+/// assert_eq!(bisect_left_by(&s, |probe| probe.cmp(&seek)), 13); 
 /// ```
 pub fn bisect_left_by<T, F>(a: &[T], mut f: F) -> usize
 where
